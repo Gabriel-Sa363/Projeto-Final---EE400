@@ -1,0 +1,264 @@
+#Código Projeto D Ex1 
+import math
+import numpy as np
+import sympy as sp
+
+G = 6.67430e-11  # constante gravitacional em m^3 kg^-1 s^-2
+M = 5.972e24     # massa da Terra em kg
+GM = G*M
+# Definir a função e sua derivada
+def f(E, e, a, GM, delta_t):
+    return E - e * np.sin(E) - np.sqrt((a**3) / GM) * delta_t
+
+def df(E, e):
+    return 1 - e * np.cos(E)
+
+# Implementar o método de Newton
+def newton_method(f, df, x0, tolerance=1e-7, max_iterations=1000):
+    x_n = x0
+    for n in range(max_iterations):
+        f_x_n = f(x_n)
+        df_x_n = df(x_n)
+        
+        if abs(f_x_n) < tolerance:
+            print(f"Convergiu para {x_n} após {n} iterações.")
+            return x_n
+        
+        if df_x_n == 0:
+            print("A derivada é zero. O método de Newton falhou.")
+            return None
+        
+        x_n = x_n - f_x_n / df_x_n
+    
+    print("Número máximo de iterações atingido. O método de Newton falhou.")
+    return None
+
+
+
+def calculate_x(a, E, e):
+    return a * np.cos(E) - a * e
+
+def calculate_y(a, E, e):
+    return a * np.sqrt(1 - e**2) * np.sin(E)
+
+
+
+# Valor inicial
+x0 = 20000     #distancia média do gps em km
+
+# Encontrar a raiz
+raiz = newton_method(f, df, x0)
+print(f"Raiz encontrada: {raiz}")
+
+
+def transform_matrix(alpha, beta, gamma):
+    # Define as matrizes
+    C_gamma = np.array([
+        [np.cos(gamma), np.sin(gamma), 0],
+        [-np.sin(gamma), np.cos(gamma), 0],
+        [0, 0, 1]
+    ])
+    
+    B_beta = np.array([
+        [1, 0, 0],
+        [0, np.cos(beta), np.sin(beta)],
+        [0, -np.sin(beta), np.cos(beta)]
+    ])
+    
+    A_alpha = np.array([
+        [np.cos(alpha), np.sin(alpha), 0],
+        [-np.sin(alpha), np.cos(alpha), 0],
+        [0, 0, 1]
+    ])
+    
+    # Calcula a matriz de transformação combinada
+    M = C_gamma @ B_beta @ A_alpha
+    
+    return M
+
+# Exemplo de ângulos em graus convertidos para radianos
+alpha = np.radians(30)  # Converter graus para radianos
+beta = np.radians(45)   # Converter graus para radianos
+gamma = np.radians(60)  # Converter graus para radianos
+
+# Calcula a matriz de transformação
+M = transform_matrix(alpha, beta, gamma)
+print(M)
+
+
+#Código Projeto D Ex2
+import math
+def compute_delta(TOA , TOT):
+    TOF =TOA-TOT
+    # Velocidade da luz em m/s
+    c = 3e8
+    delta = TOF * c
+    return delta
+
+delta_1 = compute_delta(TOA_1,TOT_1)
+delta_2 = compute_delta(TOA_2,TOT_2)
+delta_3 = compute_delta(TOA_3,TOT_3)
+delta_4 = compute_delta(TOA_4,TOT_4)
+
+
+def compute_J(x, y, z, A_1, B_1, C_1, delta_1, A_2, B_2, C_2, delta_2, A_3, B_3, C_3, delta_3, A_4, B_4, C_4, delta_4):
+    # Calcular cada termo individualmente
+    termo_1 = math.sqrt((x - A_1)**2 + (y - B_1)**2 + (z - C_1)**2) - delta_1
+    termo_2 = math.sqrt((x - A_2)**2 + (y - B_2)**2 + (z - C_2)**2) - delta_2
+    termo_3 = math.sqrt((x - A_3)**2 + (y - B_3)**2 + (z - C_3)**2) - delta_3
+    termo_4 = math.sqrt((x - A_4)**2 + (y - B_4)**2 + (z - C_4)**2) - delta_4
+
+    # Somar os termos
+    J = termo_1 + termo_2 + termo_3 + termo_4
+    
+    return J
+
+
+
+def calcula_derivadaX(x, y, z, A_1, B_1, C_1, R_1, A_2, B_2, C_2, R_2, A_3, B_3, C_3, R_3, A_4, B_4, C_4, R_4):
+    # Calcular dx para o primeiro conjunto de variáveis
+    numerador_1 = 2 * (x - A_1) * (math.sqrt((x - A_1)**2 + (y - B_1)**2 + (z - C_1)**2) - R_1)
+    denominador_1 = math.sqrt((x - A_1)**2 + (y - B_1)**2 + (z - C_1)**2)
+    dx_1 = numerador_1 / denominador_1
+
+    # Calcular dx para o segundo conjunto de variáveis
+    numerador_2 = 2 * (x - A_2) * (math.sqrt((x - A_2)**2 + (y - B_2)**2 + (z - C_2)**2) - R_2)
+    denominador_2 = math.sqrt((x - A_2)**2 + (y - B_2)**2 + (z - C_2)**2)
+    dx_2 = numerador_2 / denominador_2
+
+    # Calcular dx para o terceiro conjunto de variáveis
+    numerador_3 = 2 * (x - A_3) * (math.sqrt((x - A_3)**2 + (y - B_3)**2 + (z - C_3)**2) - R_3)
+    denominador_3 = math.sqrt((x - A_3)**2 + (y - B_3)**2 + (z - C_3)**2)
+    dx_3 = numerador_3 / denominador_3
+
+    # Calcular dx para o quarto conjunto de variáveis
+    numerador_4 = 2 * (x - A_4) * (math.sqrt((x - A_4)**2 + (y - B_4)**2 + (z - C_4)**2) - R_4)
+    denominador_4 = math.sqrt((x - A_4)**2 + (y - B_4)**2 + (z - C_4)**2)
+    dx_4 = numerador_4 / denominador_4
+
+    # Somar os quatro valores de dx
+    dx = dx_1 + dx_2 + dx_3 + dx_4
+
+    return dx
+
+def calcula_derivadaY(y, x, z, B_1, A_1, C_1, R_1, B_2, A_2, C_2, R_2, B_3, A_3, C_3, R_3, B_4, A_4, C_4, R_4):
+    # Calcular dy para o primeiro conjunto de variáveis
+    numerador_1 = 2 * (y - B_1) * (math.sqrt((y - B_1)**2 + (x - A_1)**2 + (z - C_1)**2) - R_1)
+    denominador_1 = math.sqrt((y - B_1)**2 + (x - A_1)**2 + (z - C_1)**2)
+    dy_1 = numerador_1 / denominador_1
+
+    # Calcular dy para o segundo conjunto de variáveis
+    numerador_2 = 2 * (y - B_2) * (math.sqrt((y - B_2)**2 + (x - A_2)**2 + (z - C_2)**2) - R_2)
+    denominador_2 = math.sqrt((y - B_2)**2 + (x - A_2)**2 + (z - C_2)**2)
+    dy_2 = numerador_2 / denominador_2
+
+    # Calcular dy para o terceiro conjunto de variáveis
+    numerador_3 = 2 * (y - B_3) * (math.sqrt((y - B_3)**2 + (x - A_3)**2 + (z - C_3)**2) - R_3)
+    denominador_3 = math.sqrt((y - B_3)**2 + (x - A_3)**2 + (z - C_3)**2)
+    dy_3 = numerador_3 / denominador_3
+
+    # Calcular dy para o quarto conjunto de variáveis
+    numerador_4 = 2 * (y - B_4) * (math.sqrt((y - B_4)**2 + (x - A_4)**2 + (z - C_4)**2) - R_4)
+    denominador_4 = math.sqrt((y - B_4)**2 + (x - A_4)**2 + (z - C_4)**2)
+    dy_4 = numerador_4 / denominador_4
+
+    # Somar os quatro valores de dy
+    dy = dy_1 + dy_2 + dy_3 + dy_4
+
+    return dy
+
+def calcula_derivadaZ(z, x, y, C_1, A_1, B_1, R_1, C_2, A_2, B_2, R_2, C_3, A_3, B_3, R_3, C_4, A_4, B_4, R_4):
+    # Calcular dz para o primeiro conjunto de variáveis
+    numerador_1 = 2 * (z - C_1) * (math.sqrt((z - C_1)**2 + (x - A_1)**2 + (y - B_1)**2) - R_1)
+    denominador_1 = math.sqrt((z - C_1)**2 + (x - A_1)**2 + (y - B_1)**2)
+    dz_1 = numerador_1 / denominador_1
+
+    # Calcular dz para o segundo conjunto de variáveis
+    numerador_2 = 2 * (z - C_2) * (math.sqrt((z - C_2)**2 + (x - A_2)**2 + (y - B_2)**2) - R_2)
+    denominador_2 = math.sqrt((z - C_2)**2 + (x - A_2)**2 + (y - B_2)**2)
+    dz_2 = numerador_2 / denominador_2
+
+    # Calcular dz para o terceiro conjunto de variáveis
+    numerador_3 = 2 * (z - C_3) * (math.sqrt((z - C_3)**2 + (x - A_3)**2 + (y - B_3)**2) - R_3)
+    denominador_3 = math.sqrt((z - C_3)**2 + (x - A_3)**2 + (y - B_3)**2)
+    dz_3 = numerador_3 / denominador_3
+
+    # Calcular dz para o quarto conjunto de variáveis
+    numerador_4 = 2 * (z - C_4) * (math.sqrt((z - C_4)**2 + (x - A_4)**2 + (y - B_4)**2) - R_4)
+    denominador_4 = math.sqrt((z - C_4)**2 + (x - A_4)**2 + (y - B_4)**2)
+    dz_4 = numerador_4 / denominador_4
+
+    # Somar os quatro valores de dz
+    dz = dz_1 + dz_2 + dz_3 + dz_4
+
+    return dz
+
+x=0
+y=0
+z=0
+for i in range(500):
+    # Aqui você pode colocar o código que deseja repetir
+    
+    J = compute_J(x, y, z, A_1, B_1, C_1, delta_1, A_2, B_2, C_2, delta_2, A_3, B_3, C_3, delta_3, A_4, B_4, C_4, delta_4)
+    dx = calcula_derivadaX(x, y, z, A_1, B_1, C_1, R_1, A_2, B_2, C_2, R_2, A_3, B_3, C_3, R_3, A_4, B_4, C_4, R_4)
+    dy = calcula_derivadaY(y, x, z, B_1, A_1, C_1, R_1, B_2, A_2, C_2, R_2, B_3, A_3, C_3, R_3, B_4, A_4, C_4, R_4)
+    dz = calcula_derivadaz(y, x, z, B_1, A_1, C_1, R_1, B_2, A_2, C_2, R_2, B_3, A_3, C_3, R_3, B_4, A_4, C_4, R_4)
+    x = x - dx
+    y = y - dy
+    z = z - dz
+    if J == 0:
+        break
+Alpha = 0,5
+for i in range(500):
+    # Aqui você pode colocar o código que deseja repetir
+    
+    J = compute_J(x, y, z, A_1, B_1, C_1, delta_1, A_2, B_2, C_2, delta_2, A_3, B_3, C_3, delta_3, A_4, B_4, C_4, delta_4)
+    dx = calcula_derivadaX(x, y, z, A_1, B_1, C_1, R_1, A_2, B_2, C_2, R_2, A_3, B_3, C_3, R_3, A_4, B_4, C_4, R_4)
+    dy = calcula_derivadaY(y, x, z, B_1, A_1, C_1, R_1, B_2, A_2, C_2, R_2, B_3, A_3, C_3, R_3, B_4, A_4, C_4, R_4)
+    dz = calcula_derivadaz(y, x, z, B_1, A_1, C_1, R_1, B_2, A_2, C_2, R_2, B_3, A_3, C_3, R_3, B_4, A_4, C_4, R_4)
+    x = x - dx*Alpha
+    y = y - dy*Alpha
+    z = z - dz*Alpha
+    if J == 0:
+        break
+
+
+#corrigido não usado
+
+'''trocar
+def calcular_periodo(G, M, R):
+    T = math.sqrt((4 * math.pi**2 * R**3) / (G * M))
+    return T
+# Definir os valores das variáveis
+G = 6.67430e-11  # constante gravitacional em m^3 kg^-1 s^-2
+M = 5.972e24     # massa da Terra em kg
+R = 6.3781e6     # raio da Terra em metros
+# Calcular o período
+T = calcular_periodo(G, M, R)
+print(f"O período orbital é: {T} segundos")
+
+'''
+
+
+'''
+def compute_values(e, sin_v, cos_v, T):
+    
+    sin_E = math.sqrt(1 - e**2) * sin_v / (1 + e * cos_v)
+    
+  
+    cos_E = (e + cos_v) / (1 + e * cos_v)
+    
+    
+    E = math.atan2(sin_E, cos_E)
+    
+   
+    t = (E - e * sin_E) * (T / (2 * math.pi))
+    
+    
+    v = 2 * math.atan(math.sqrt((1 + e) / (1 - e)) * math.tan(E / 2))
+    
+    return sin_E, cos_E, E, t, v
+
+sin_E, cos_E, E, t, v = compute_values(e, np.sin(v) ,np.cos(v) , T)
+
+'''
